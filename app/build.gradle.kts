@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    kotlin("kapt") // Room annotation processing
 }
 
 android {
@@ -42,48 +43,81 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3" // stable Compose compiler
+        kotlinCompilerExtensionVersion = "1.5.3"
     }
 }
 
 dependencies {
 
-    // AndroidX Core & Lifecycle
+    // ----------------------------------------
+    // ANDROIDX CORE
+    // ----------------------------------------
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
-    // Jetpack Compose (BOM for version alignment)
+    // ----------------------------------------
+    // JETPACK COMPOSE + BOM
+    // ----------------------------------------
     implementation(platform("androidx.compose:compose-bom:2024.10.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.navigation:navigation-compose:2.8.3")
 
-    // Firebase (BOM for auth)
+    // ----------------------------------------
+    // MATERIAL ICONS (REQUIRED)
+    // ----------------------------------------
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // For Insights icon (vector graphics)
+    implementation("androidx.compose.ui:ui-graphics")
+
+    // ----------------------------------------
+    // FIREBASE (BOM)
+    // ----------------------------------------
     implementation(platform("com.google.firebase:firebase-bom:32.3.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
-    // Google Sign-In
+    // ----------------------------------------
+    // GOOGLE LOGIN
+    // ----------------------------------------
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
-    // Kotlin Coroutines
+    // ----------------------------------------
+    // COROUTINES
+    // ----------------------------------------
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
-    // Accompanist Pager
+    // ----------------------------------------
+    // ROOM (LOCAL DATABASE)
+    // ----------------------------------------
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+
+    // ----------------------------------------
+    // ACCOMPANIST (OPTIONAL UI HELPERS)
+    // ----------------------------------------
     implementation("com.google.accompanist:accompanist-pager:0.30.1")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.30.1")
 
-    // Testing
+    // ----------------------------------------
+    // TESTING
+    // ----------------------------------------
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.10.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
-    // Debug tools
+    // ----------------------------------------
+    // DEBUGGING
+    // ----------------------------------------
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

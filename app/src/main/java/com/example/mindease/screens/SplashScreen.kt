@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,13 +17,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
 import com.example.mindease.R
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController) {
 
-    // Gradient background
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -35,11 +34,8 @@ fun SplashScreen(navController: NavController) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Circular logo
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -54,17 +50,15 @@ fun SplashScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Brand Name
             Text(
                 text = "MindEase",
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0277BD) // deep blue
+                color = Color(0xFF0277BD)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Tagline
             Text(
                 text = "Breathe. Reflect. Grow.",
                 fontSize = 18.sp,
@@ -74,11 +68,22 @@ fun SplashScreen(navController: NavController) {
         }
     }
 
-    // Navigate to login screen after 3 seconds
+    // FIXED LOGIN CHECK
     LaunchedEffect(Unit) {
-        delay(3000)
-        navController.navigate("login") {
-            popUpTo("splash") { inclusive = true }
+        delay(2000)
+
+        val user = FirebaseAuth.getInstance().currentUser
+
+        if (user != null) {
+            // User already logged in → Go Home
+            navController.navigate("home") {
+                popUpTo("splash") { inclusive = true }
+            }
+        } else {
+            // User NOT logged in → Go Login
+            navController.navigate("login") {
+                popUpTo("splash") { inclusive = true }
+            }
         }
     }
 }
