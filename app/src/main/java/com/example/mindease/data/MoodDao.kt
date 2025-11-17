@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MoodDao {
 
-    /** Insert a mood entry */
+    //Insert mood entry
     @Insert
     suspend fun insertMood(mood: Mood)
 
-    /** Observe all saved moods (auto-updates Home Screen) */
+    // Observe all saved moods
     @Query("SELECT * FROM mood_table ORDER BY timestamp DESC")
     fun getAllMoods(): Flow<List<Mood>>
 }

@@ -68,19 +68,18 @@ fun SplashScreen(navController: NavController) {
         }
     }
 
-    // FIXED LOGIN CHECK
     LaunchedEffect(Unit) {
         delay(2000)
 
         val user = FirebaseAuth.getInstance().currentUser
 
         if (user != null) {
-            // User already logged in → Go Home
+            // User already logged in Go Home
             navController.navigate("home") {
                 popUpTo("splash") { inclusive = true }
             }
         } else {
-            // User NOT logged in → Go Login
+            // User NOT logged in Go Login
             navController.navigate("login") {
                 popUpTo("splash") { inclusive = true }
             }
