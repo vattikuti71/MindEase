@@ -6,13 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Mood::class],
-    version = 2,
+    entities = [Mood::class, JournalEntry::class],
+    version = 3,
     exportSchema = false
 )
 abstract class MoodDatabase : RoomDatabase() {
 
     abstract fun moodDao(): MoodDao
+    abstract fun journalDao(): JournalDao
 
     companion object {
 
@@ -24,7 +25,7 @@ abstract class MoodDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     MoodDatabase::class.java,
-                    "mood_database"
+                    "mindease_database"
                 )
                     .fallbackToDestructiveMigration()
                     .build()

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,22 +22,26 @@ import androidx.navigation.NavController
 import com.example.mindease.data.MoodDatabase
 import com.example.mindease.repository.MoodRepository
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun HomeScreen(navController: NavController) {
 
-    val dao = MoodDatabase.getDatabase(navController.context).moodDao()
-    val repository = MoodRepository(dao)
+    val context = LocalContext.current
 
-    // Collect Mood Flow
+    // Database
+    val dao = remember { MoodDatabase.getDatabase(context).moodDao() }
+    val repository = remember { MoodRepository(dao) }
+
+    // Collect Flow of moods
     val moods by repository.getAllMoods().collectAsState(initial = emptyList())
 
+    // User details
     val auth = FirebaseAuth.getInstance()
     val username = auth.currentUser?.displayName
         ?: auth.currentUser?.email?.substringBefore("@")
         ?: "User"
 
+    // Last mood
     val lastMood = moods.lastOrNull()
     val moodLabel = lastMood?.moodType ?: "No mood logged"
     val moodRating = lastMood?.moodRating ?: 0
@@ -59,7 +64,7 @@ fun HomeScreen(navController: NavController) {
                 .padding(20.dp)
         ) {
 
-            // HEADER + LOGOUT
+            //Header with Logout
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -97,7 +102,7 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // LAST MOOD SUMMARY
+            // Last mood card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -136,7 +141,7 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // TODAY'S MOOD SECTION
+            // Today's mood section
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -171,7 +176,7 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // QUICK ACTIONS
+            // Quick Actions Title
             Text(
                 text = "Quick Actions",
                 fontSize = 18.sp,
@@ -180,12 +185,13 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(Modifier.height(12.dp))
 
+            // Grid Buttons
             QuickActionGrid(navController)
 
             Spacer(modifier = Modifier.height(100.dp))
         }
 
-        // BOTTOM NAV BAR
+        // Bottom Nav
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -196,21 +202,23 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
-//////////////////////////////////////////////////////
-// QUICK ACTION GRID + CARDS
-//////////////////////////////////////////////////////
-
+// QUICK ACTION GRID
 @Composable
 fun QuickActionGrid(navController: NavController) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
             QuickActionCard("Mood Tracker") { navController.navigate("moodTracker") }
-            QuickActionCard("Habits") { }
+            QuickActionCard("Habits") { /* TODO */ }
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
-            QuickActionCard("Habit Tracker") { }
+
+            // Daily Journal
+            QuickActionCard("Daily Journal") {
+                navController.navigate("journalList")
+            }
+
             QuickActionCard("Community") { }
         }
 
@@ -246,10 +254,7 @@ fun QuickActionCard(text: String, onClick: () -> Unit) {
     }
 }
 
-//////////////////////////////////////////////////////
 // BOTTOM NAV BAR
-//////////////////////////////////////////////////////
-
 @Composable
 fun BottomNavBar(navController: NavController) {
     Row(
