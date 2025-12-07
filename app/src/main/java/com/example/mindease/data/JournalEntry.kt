@@ -12,10 +12,6 @@ data class JournalEntry(
     val content: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
-
-    // 0 = not synced, 1 = synced
     val syncStatus: Int = 0,
-
-    // Firestore document id
     val remoteId: String? = null
 )

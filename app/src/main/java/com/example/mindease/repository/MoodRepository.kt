@@ -11,7 +11,7 @@ class MoodRepository(private val dao: MoodDao) {
         dao.insertMood(mood)
     }
 
-    //Observe moods in real-time (Flow)
+    //Observe moods in real-time
     fun getAllMoods(): Flow<List<Mood>> {
         return dao.getAllMoods()
     }

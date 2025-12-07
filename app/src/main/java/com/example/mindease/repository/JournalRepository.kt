@@ -16,9 +16,9 @@ class JournalRepository(
 
     suspend fun getEntryById(id: Int): JournalEntry? = dao.getEntryById(id)
 
+    // add entry
     suspend fun addEntry(entry: JournalEntry): Long = withContext(Dispatchers.IO) {
         val id = dao.insert(entry.copy(syncStatus = 0))
-        // Fetch freshly inserted local row
         val localEntry = dao.getEntryById(id.toInt())
         localEntry?.let {
             try {
@@ -31,8 +31,12 @@ class JournalRepository(
         id
     }
 
+    // update entry
     suspend fun updateEntry(entry: JournalEntry) = withContext(Dispatchers.IO) {
-        val updated = entry.copy(updatedAt = System.currentTimeMillis(), syncStatus = 0)
+        val updated = entry.copy(
+            updatedAt = System.currentTimeMillis(),
+            syncStatus = 0
+        )
         dao.update(updated)
         try {
             val remoteId = remote.uploadEntry(updated)
@@ -42,11 +46,11 @@ class JournalRepository(
         }
     }
 
+    // delete entry
     suspend fun deleteEntry(entry: JournalEntry) = withContext(Dispatchers.IO) {
-        // delete locally first
         dao.delete(entry)
-        // try to delete remotely if remoteId exists
         try {
+            // delete cloud
             remote.deleteRemote(entry.remoteId)
         } catch (e: Exception) {
             e.printStackTrace()

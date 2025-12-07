@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
 @Composable
+// splash screen
 fun SplashScreen(navController: NavController) {
 
     Box(
@@ -69,19 +70,17 @@ fun SplashScreen(navController: NavController) {
     }
 
     LaunchedEffect(Unit) {
-        delay(2000)
+        delay(2000)                                        // wait 2 sec
 
-        val user = FirebaseAuth.getInstance().currentUser
+        val user = FirebaseAuth.getInstance().currentUser  // check user
 
-        if (user != null) {
-            // User already logged in Go Home
+        if (user != null) {                                // logged in
             navController.navigate("home") {
-                popUpTo("splash") { inclusive = true }
+                popUpTo("splash") { inclusive = true }     // remove splash
             }
-        } else {
-            // User NOT logged in Go Login
+        } else {                                           // not logged
             navController.navigate("login") {
-                popUpTo("splash") { inclusive = true }
+                popUpTo("splash") { inclusive = true }     // remove splash
             }
         }
     }

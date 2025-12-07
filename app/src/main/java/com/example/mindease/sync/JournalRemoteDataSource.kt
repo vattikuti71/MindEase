@@ -8,7 +8,9 @@ import kotlinx.coroutines.tasks.await
 
 class JournalRemoteDataSource(private val context: Context) {
 
+    // firestore db
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    // firebase auth
     private val auth: FirebaseAuth get() = FirebaseAuth.getInstance()
 
     private fun collectionRef() =
@@ -24,6 +26,7 @@ class JournalRemoteDataSource(private val context: Context) {
             "createdAt" to entry.createdAt
         )
 
+        // Add cloud & Update cloud
         return if (entry.remoteId != null) {
             collectionRef().document(entry.remoteId).set(data).await()
             entry.remoteId
@@ -33,16 +36,18 @@ class JournalRemoteDataSource(private val context: Context) {
         }
     }
 
+    // delete cloud
     suspend fun deleteRemote(remoteId: String?) {
         if (remoteId == null) return
         collectionRef().document(remoteId).delete().await()
     }
 
+    // fetch all
     suspend fun fetchAllRemote(): List<JournalEntry> {
         val snapshot = collectionRef().get().await()
         return snapshot.documents.map { doc ->
             JournalEntry(
-                remoteId = doc.id,
+                remoteId = doc.id, // doc id
                 title = doc.getString("title") ?: "",
                 content = doc.getString("content") ?: "",
                 updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis(),
