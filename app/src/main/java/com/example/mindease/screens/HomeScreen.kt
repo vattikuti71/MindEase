@@ -19,45 +19,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mindease.data.MoodDatabase
 import com.example.mindease.repository.MoodRepository
+import com.example.mindease.data.MoodDatabase
+import com.example.mindease.viewmodel.MoodViewModel
 import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mindease.viewmodel.MoodViewModelFactory
 
 @Composable
 fun HomeScreen(
     navController: NavController,
+    moodViewModel: MoodViewModel = viewModel(
+        factory = MoodViewModelFactory(
+            MoodRepository(MoodDatabase.getDatabase(LocalContext.current).moodDao())
+        )
+    )
 ) {
-    val context = LocalContext.current
+    val lastMood by moodViewModel.lastMood.collectAsState()
+    val todayMood by moodViewModel.todayMood.collectAsState()
 
-    // Database
-    val dao = remember { MoodDatabase.getDatabase(context).moodDao() }
-    val repository = remember { MoodRepository(dao) }
-
-    // Mood list
-    val moods by repository.getAllMoods().collectAsState(initial = emptyList())
-
-    // User info
-    val auth = FirebaseAuth.getInstance()
-    val username = auth.currentUser?.displayName
-        ?: auth.currentUser?.email?.substringBefore("@")
+    // username
+    val username = FirebaseAuth.getInstance().currentUser?.displayName
+        ?: FirebaseAuth.getInstance().currentUser?.email?.substringBefore("@")
         ?: "User"
-
-    // Last mood
-    val lastMood = moods.lastOrNull()
-    val moodLabel = lastMood?.moodType ?: "No mood logged"
-    val moodRating = lastMood?.moodRating ?: 0
-
-    val moodColor = when {
-        moodRating >= 4 -> Color(0xFF4CAF50)
-        moodRating >= 2 -> Color(0xFFFFC107)
-        moodRating > 0 -> Color(0xFFFF5252)
-        else -> Color.Gray
-    }
 
     val scrollState = rememberScrollState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -66,7 +54,6 @@ fun HomeScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
 
-            // Top bar
             TopBar(username, navController)
 
             Column(
@@ -78,18 +65,27 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Last mood
-                LastMoodCard(moodLabel, moodRating, moodColor) {
+                // Last Mood Card
+                LastMoodCard(
+                    moodLabel = lastMood?.moodType ?: "No mood logged",
+                    moodRating = lastMood?.moodRating ?: 0,
+                    moodColor = getMoodColor(lastMood?.moodRating ?: 0)
+                ) {
                     navController.navigate("moodTracker")
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Today mood
-                TodaysMoodCard(moodLabel, moodRating, moodColor)
+                // Today's Mood Card
+                TodaysMoodCard(
+                    moodLabel = todayMood?.moodType ?: "No mood logged",
+                    moodRating = todayMood?.moodRating ?: 0,
+                    moodColor = getMoodColor(todayMood?.moodRating ?: 0)
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // quick actions
                 Text(
                     text = "Quick Actions",
                     fontSize = 20.sp,
@@ -109,10 +105,19 @@ fun HomeScreen(
     }
 }
 
+// Helper function to map mood rating to color
+fun getMoodColor(rating: Int): Color {
+    return when {
+        rating >= 4 -> Color(0xFF4CAF50)
+        rating >= 2 -> Color(0xFFFFC107)
+        rating > 0 -> Color(0xFFFF5252)
+        else -> Color.Gray
+    }
+}
+
 // TopBar
 @Composable
 fun TopBar(username: String, navController: NavController) {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -135,7 +140,7 @@ fun TopBar(username: String, navController: NavController) {
             )
         }
 
-        // Settings btn
+        // settings
         IconButton(onClick = { navController.navigate("settings") }) {
             Icon(
                 imageVector = Icons.Default.Settings,
@@ -156,8 +161,7 @@ fun LastMoodCard(moodLabel: String, moodRating: Int, moodColor: Color, onCheckIn
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-
-            // Mood text
+            // Last Mood Text
             Text(
                 text = "Last Mood: $moodLabel",
                 fontSize = 16.sp,
@@ -165,7 +169,7 @@ fun LastMoodCard(moodLabel: String, moodRating: Int, moodColor: Color, onCheckIn
                 color = moodColor
             )
 
-            // Mood rating
+            // Mood Rating
             if (moodRating > 0) {
                 Text(
                     text = "Rating: $moodRating/5",
@@ -175,15 +179,15 @@ fun LastMoodCard(moodLabel: String, moodRating: Int, moodColor: Color, onCheckIn
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp)) //spacing
 
-            // Check btn
             Button(
                 onClick = onCheckInClick,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(Color(0xFF64B5F6))
             ) {
+                // Mood Check Button
                 Text("Quick Mood Check →", color = Color.White)
             }
         }
@@ -200,17 +204,15 @@ fun TodaysMoodCard(moodLabel: String, moodRating: Int, moodColor: Color) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-
-            // Title
+            // Todays mood tex
             Text("Today's Mood", fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Mood label
             Text(moodLabel, fontSize = 20.sp, color = moodColor, fontWeight = FontWeight.Bold)
 
-            // Mood rating
             if (moodRating > 0) {
+                // Rating
                 Text(
                     text = "Rating: $moodRating/5",
                     fontSize = 18.sp,
@@ -225,7 +227,6 @@ fun TodaysMoodCard(moodLabel: String, moodRating: Int, moodColor: Color) {
 // Quick Actions Grid
 @Composable
 fun QuickActionGrid(navController: NavController) {
-
     val actions = listOf(
         "Mood Tracker" to Icons.Default.EmojiEmotions,
         "Habits" to Icons.Default.List,
@@ -236,19 +237,13 @@ fun QuickActionGrid(navController: NavController) {
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
         for (row in actions.chunked(2)) {
-
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-
                 for ((label, icon) in row) {
-
                     QuickActionCard(icon, label) {
-
-                        // Navigation
                         when (label) {
                             "Mood Tracker" -> navController.navigate("moodTracker")
                             "Daily Journal" -> navController.navigate("journalList")
@@ -257,7 +252,6 @@ fun QuickActionGrid(navController: NavController) {
                         }
                     }
                 }
-
                 if (row.size < 2) Spacer(modifier = Modifier.weight(1f))
             }
         }
@@ -265,6 +259,7 @@ fun QuickActionGrid(navController: NavController) {
 }
 
 @Composable
+// Quick Action Crads
 fun QuickActionCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String,
@@ -279,19 +274,13 @@ fun QuickActionCard(
         colors = CardDefaults.cardColors(Color.White),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            // Icon
             Icon(icon, contentDescription = text, tint = Color(0xFF64B5F6), modifier = Modifier.size(32.dp))
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Label
             Text(text, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF333333))
         }
     }
@@ -300,11 +289,17 @@ fun QuickActionCard(
 // Bottom Navigation
 @Composable
 fun BottomNavBar(navController: NavController) {
-
     val navItems = listOf(
+        // Home Icon
         Icons.Default.Home to "Home",
+
+        // Mood Icon
         Icons.Default.EmojiEmotions to "Mood",
+
+        // Insights Icon
         Icons.Default.Lightbulb to "Insights",
+
+        // Profile Icon
         Icons.Default.Person to "Profile"
     )
 
@@ -316,12 +311,8 @@ fun BottomNavBar(navController: NavController) {
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         for ((icon, label) in navItems) {
-
             NavItem(icon, label) {
-
-                // Bottom navigation
                 when (label) {
                     "Home" -> navController.navigate("home")
                     "Mood" -> navController.navigate("moodTracker")
@@ -334,6 +325,7 @@ fun BottomNavBar(navController: NavController) {
 }
 
 @Composable
+// Nav Item
 fun NavItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
@@ -343,11 +335,10 @@ fun NavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable(onClick = onClick)
     ) {
-
         // Icon
         Icon(icon, contentDescription = label, tint = Color(0xFF8E8E8E))
 
-        // Text
+        // Label Text
         Text(label, fontSize = 12.sp, color = Color.Gray)
     }
 }
